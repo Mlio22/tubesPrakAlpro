@@ -1,5 +1,10 @@
-// ! catatan penting : compiler harus berjalan di mode c99
-// ! -std=c99
+/*
+! catatan penting : 
+! 1. compiler harus berjalan di mode c99
+! 	=> -std=c99
+! 2. kode tidak bisa dijalankan di code blocks (bisa diperbaiki nanti)
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>
@@ -9,10 +14,9 @@
 #define DATABASEFILE "DATABASE.txt"
 
 int kalimatTerpanjang(char data[], int *tab){
-	// printf("jumlah karakter data ke %i, adalah %d\n", nomor+1, strlen(data));
-//	printf("jumlah tab adalah : %d\n", (strlen(data)+2)/6);
-	if((strlen(data)+2)/6 > *tab){
-		*tab = (strlen(data)+2)/6;
+	// printf("panjang Nama lengkap adalah : %d", strlen(data));
+	if((strlen(data)/7)+1 > *tab){
+		*tab = strlen(data)/7 +1;
 	}
 }
 
@@ -20,49 +24,48 @@ void digitTerpanjang(int data, int *tab){
 	char demo[10];
 
 	sprintf(demo, "%d", data);
-	if((strlen(demo)+2)/6 > *tab){
-		*tab = (strlen(demo)+2)/6 +1 ;
+	if(strlen(demo)/7 > *tab){
+		*tab = strlen(demo)/7 +1 ;
 	}
 }
 
 void judulDaftar(char kata[], int tab){
 	int i;
-	printf(" %s", kata);
+	printf("%s", kata);
 	for(i = 0; i<tab; i++){
 		printf("\t");
 	}
-	printf(" |");
+	printf("|");
 }
 
 void daftarDataInt(int data, int tab){
-	printf(" %d", data);
+	printf("%d", data);
 	char demo[10];
-	int j=0;
 
 	sprintf(demo, "%d", data);
-	if((strlen(demo)+2)/6 >= 1){
-		tab -= (strlen(demo)+2)/6;
+	if(strlen(demo)/7 >= 1){
+		tab -= strlen(demo)/7;
 	}
-
-	do{
+	
+	for(int j=0; j<tab; j++){
 		printf("\t");
-		j++;
-	}while(j<tab);
-	printf(" |");
+	}
+	
+	printf("|");
 }
 
 void daftarDataString(char data[], int tab){
-	printf(" %s", data);
-	int j = 0;
+	printf("%s", data);
 
-	if((strlen(data)+2)/7 >= 1){
-		tab -= (strlen(data)+2)/7;
+	if(strlen(data)/7 >= 1){
+		tab -= strlen(data)/7;
 	}
-	do{
+	
+	for(int j=0; j<tab; j++){
 		printf("\t");
-		j++;
-	}while(j<tab);
-	printf(" |");
+	}
+	
+	printf("|");
 }
 
 //	deklarasi struktur data pasien
@@ -74,7 +77,7 @@ struct data
 
 
 int main(){
-    // Membaca Database
+	//todo: Membaca Database
     FILE *db;
     
     char data[20];
@@ -86,7 +89,7 @@ int main(){
         exit(0);
     }
 
-	//	checking jika database kosong atau tidak
+	//todo:	checking jika database kosong atau tidak
 	char line[256];
 	fgets(line, sizeof(line), db);
 	
@@ -94,7 +97,7 @@ int main(){
 		fprintf(db, "0#\n");
 	}
     
-    // mengambil data pasien
+	//todo:	mengambil data pasien
     int totalData;
 	fflush(db);
 	fseek(db, 0, SEEK_SET);
@@ -106,22 +109,23 @@ int main(){
 	int i = 0;
 	
 	struct data pasien[totalData];
-    // membaca data pasien
-        
+
+	//todo:	membaca data pasien        
     while(!feof(db) && totalData > 0){
         fscanf(db, "%d$%[^$]$%d$%[^$]$%d\n",&pasien[i].nomor,&pasien[i].nama,&pasien[i].umur, &pasien[i].tanggalLahir, &pasien[i].status);
         i++;
     }		
    
-   // menu utama
-   int menu;
+//! menu utama
+  	int menu;
    
-   printf("Selamat Datang\n1. Tampilkan Data Pasien\n2. Tambahkan Data Pasien\n3. Ubah Data Pasien\n");
-   printf("Masukkan Menu (Tombol lain untuk keluar) : "); scanf("%d",&menu);
+   	printf("Selamat Datang\n1. Tampilkan Data Pasien\n2. Tambahkan Data Pasien\n3. Ubah Data Pasien\n");
+   	printf("Masukkan Menu (Tombol lain untuk keluar) : "); scanf("%d",&menu);
 
-  switch (menu)
-  {
-    case 1:
+  	switch (menu){
+	//! algoritma untuk menampilkan data
+    	case 1:
+	
         if(totalData == 0){
            printf("Database kosong");
            goto keluar;
@@ -133,20 +137,17 @@ int main(){
 		kalimatTerpanjang("Nama Lengkap", &jumlahTab[1]);
 
 	// todo: mencari panjang tiap section data
-
 		for(int j=0; j<totalData; j++){
 
-			// todo: mencari digit terpanjang untuk int
+		// todo: mencari digit terpanjang untuk int
 			digitTerpanjang(pasien[j].nomor, &jumlahTab[0]);
 			digitTerpanjang(pasien[j].umur, &jumlahTab[2]);
 			digitTerpanjang(pasien[j].status, &jumlahTab[4]);
 
-			// todo: mencari digit terpanjang untuk string
+		// todo: mencari digit terpanjang untuk string
 			kalimatTerpanjang(pasien[j].nama, &jumlahTab[1]);
 			kalimatTerpanjang(pasien[j].tanggalLahir, &jumlahTab[3]);
 		}
-
-		
 
 	// todo: menulis bagian awal tampilan
 		printf("|");
@@ -154,7 +155,7 @@ int main(){
 		judulDaftar("Nama Lengkap", jumlahTab[1] - 1);
 		judulDaftar("Umur", jumlahTab[2]);
 		judulDaftar("DOB", jumlahTab[3]);
-		judulDaftar("status", jumlahTab[4] - 1);
+		judulDaftar("status", jumlahTab[4]);
 		printf("\n");
 
 	// todo: menulis bagian data tampilan
@@ -168,24 +169,10 @@ int main(){
 
 			printf("\n");
 		}
-			
 
-	//! for debug only
-		// for(int j=0; j<5; j++){
-		// 	printf("jumlah tab yang digunakan pada baris ke %i adalah %d\n", j+1, jumlahTab[j]);
-		// }
-
-
-
-        // if(i>0){
-        // 	printf("|No\t|Nama\t|Umur\t|DOB\t|status\t|\n");
-        // 	for(int j=0; j<i; j++){
-        //  		printf("|%d\t|%s\t|%d\t|%s\t|Status: %d|\n",pasien[j].nomor, pasien[j].nama, pasien[j].umur, pasien[j].tanggalLahir, pasien[j].status);
-        // 	}	
-		// }
-		
         break;
-        
+
+	//! algoritma untuk menambahkan data pasien
     case 2:
   	    fflush(stdin);
         printf("Masukkan Nama : "); gets(nama);
@@ -200,6 +187,7 @@ int main(){
         fprintf(db, "%d#\n",++totalData);
 
         break;
+	//! algoritma untuk mengubah data pasien
     case 3:
         printf("Anda masuk ke menu 3");
         break;
