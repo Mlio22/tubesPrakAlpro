@@ -8,62 +8,61 @@
 
 #define DATABASEFILE "DATABASE.txt"
 
-//	fungsi dan prosedur dari project sebelumnya
-int digitTerpanjang(float data, int ket){
-	char hasil2[20];
-	int terpanjang = 1;
-	sprintf(hasil2,"%f",data);
-
-	if((strlen(hasil2) - 8 + ket) > 4){
-		terpanjang = (strlen(hasil2)/6) +1;
+int kalimatTerpanjang(char data[], int *tab){
+	// printf("jumlah karakter data ke %i, adalah %d\n", nomor+1, strlen(data));
+//	printf("jumlah tab adalah : %d\n", (strlen(data)+2)/6);
+	if((strlen(data)+2)/6 > *tab){
+		*tab = (strlen(data)+2)/6;
 	}
-	return terpanjang;
 }
 
-void kalimatAwal(char kata[5],int tab){
-	printf("|%s",kata);
-	for (int j=0;j<tab;j++){
+void digitTerpanjang(int data, int *tab){
+	char demo[10];
+
+	sprintf(demo, "%d", data);
+	if((strlen(demo)+2)/6 > *tab){
+		*tab = (strlen(demo)+2)/6 +1 ;
+	}
+}
+
+void judulDaftar(char kata[], int tab){
+	int i;
+	printf(" %s", kata);
+	for(i = 0; i<tab; i++){
 		printf("\t");
 	}
+	printf(" |");
 }
 
-void kalimatIterasi(int data, int tab){
-	printf("|%d",data);
-	for (int j=0;j<tab;j++){
+void daftarDataInt(int data, int tab){
+	printf(" %d", data);
+	char demo[10];
+	int j=0;
+
+	sprintf(demo, "%d", data);
+	if((strlen(demo)+2)/6 >= 1){
+		tab -= (strlen(demo)+2)/6;
+	}
+
+	do{
 		printf("\t");
-	}
+		j++;
+	}while(j<tab);
+	printf(" |");
 }
 
-void kalimatData(float data, int tab, int ket){
-	char hasil2[10];
-	sprintf(hasil2,"%f",data);
-	switch (ket){
-		case 1:
-			printf("|%.1f",data);
-			break;
-		case 2:
-			printf("|%.2f",data);
-			break;
-		case 3:
-			printf("|%.3f",data);
-			break;
-		case 4:
-			printf("|%.4f",data);
-			break;
-		case 5:
-			printf("|%.5f",data);
-			break;
-		case 6:
-			printf("|%.6f",data);
-			break;
+void daftarDataString(char data[], int tab){
+	printf(" %s", data);
+	int j = 0;
+
+	if((strlen(data)+2)/7 >= 1){
+		tab -= (strlen(data)+2)/7;
 	}
-	if(strlen(hasil2) - 6 + ket >= 6){
-		tab -= ((strlen(hasil2) - (6-ket-1))/8
-		);
-	}
-	for (int j=0;j<tab;j++){
-		printf("\t");	
-	}
+	do{
+		printf("\t");
+		j++;
+	}while(j<tab);
+	printf(" |");
 }
 
 //	deklarasi struktur data pasien
@@ -127,12 +126,64 @@ int main(){
            printf("Database kosong");
            goto keluar;
         }
-        if(i>0){
-        	printf("|No\t|Nama\t|Umur\t|DOB\t|status\t|\n");
-        	for(int j=0; j<i; j++){
-         		printf("|%d\t|%s\t|%d\t|%s\t|Status: %d|\n",pasien[j].nomor, pasien[j].nama, pasien[j].umur, pasien[j].tanggalLahir, pasien[j].status);
-        	}	
+        
+        int jumlahTab[5] = {1,1,1,1,1};
+
+	//! khusus
+		kalimatTerpanjang("Nama Lengkap", &jumlahTab[1]);
+
+	// todo: mencari panjang tiap section data
+
+		for(int j=0; j<totalData; j++){
+
+			// todo: mencari digit terpanjang untuk int
+			digitTerpanjang(pasien[j].nomor, &jumlahTab[0]);
+			digitTerpanjang(pasien[j].umur, &jumlahTab[2]);
+			digitTerpanjang(pasien[j].status, &jumlahTab[4]);
+
+			// todo: mencari digit terpanjang untuk string
+			kalimatTerpanjang(pasien[j].nama, &jumlahTab[1]);
+			kalimatTerpanjang(pasien[j].tanggalLahir, &jumlahTab[3]);
 		}
+
+		
+
+	// todo: menulis bagian awal tampilan
+		printf("|");
+		judulDaftar("Nomor", jumlahTab[0]);
+		judulDaftar("Nama Lengkap", jumlahTab[1] - 1);
+		judulDaftar("Umur", jumlahTab[2]);
+		judulDaftar("DOB", jumlahTab[3]);
+		judulDaftar("status", jumlahTab[4] - 1);
+		printf("\n");
+
+	// todo: menulis bagian data tampilan
+		for(int j=0; j<totalData; j++){
+			printf("|");
+			daftarDataInt(pasien[j].nomor, jumlahTab[0]);
+			daftarDataString(pasien[j].nama, jumlahTab[1]);
+			daftarDataInt(pasien[j].umur, jumlahTab[2]);
+			daftarDataString(pasien[j].tanggalLahir, jumlahTab[3]);
+			daftarDataInt(pasien[j].status, jumlahTab[4]);
+
+			printf("\n");
+		}
+			
+
+	//! for debug only
+		// for(int j=0; j<5; j++){
+		// 	printf("jumlah tab yang digunakan pada baris ke %i adalah %d\n", j+1, jumlahTab[j]);
+		// }
+
+
+
+        // if(i>0){
+        // 	printf("|No\t|Nama\t|Umur\t|DOB\t|status\t|\n");
+        // 	for(int j=0; j<i; j++){
+        //  		printf("|%d\t|%s\t|%d\t|%s\t|Status: %d|\n",pasien[j].nomor, pasien[j].nama, pasien[j].umur, pasien[j].tanggalLahir, pasien[j].status);
+        // 	}	
+		// }
+		
         break;
         
     case 2:
