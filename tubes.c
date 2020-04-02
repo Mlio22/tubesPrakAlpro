@@ -9,7 +9,7 @@
 #include <string.h>
 #include <windows.h>
 
-// Waktu Dihabiskan : 7
+// Waktu Dihabiskan : 10
 
 #define DATABASEFILE "DATABASE.txt"
 
