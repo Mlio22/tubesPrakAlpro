@@ -1,17 +1,31 @@
 /*
 ! catatan penting : 
-! 1. compiler harus berjalan di mode c99
+! 1. compiler harus berjalan di mode c99 atau c11
 ! 	=> -std=c99
+!	=> -std=c11
 ! 2. kode tidak bisa dijalankan di code blocks (bisa diperbaiki nanti)
 */
 
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>
+#include <conio.h>
 
-// Waktu Dihabiskan : 10
+// Waktu Dihabiskan : 12
 
 #define DATABASEFILE "DATABASE.txt"
+#define MAX 256
+
+/* 
+* 	fungsi gotoxy dari internet 
+* 	sumber : https://helloacm.com/modern-gotoxy-alternative-c/
+*/
+BOOL gotoxy(const WORD x, const WORD y) {
+    COORD xy;
+    xy.X = x;
+    xy.Y = y;
+    return SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), xy);
+}
 
 int kalimatTerpanjang(char data[], int *tab){
 	// printf("panjang Nama lengkap adalah : %d", strlen(data));
@@ -68,6 +82,56 @@ void daftarDataString(char data[], int tab){
 	printf("|");
 }
 
+void clearScreenInput(){
+	system("cls");
+	gotoxy(3,1); 
+	printf("TEKAN TOMBOL ESC UNTUK MEMBATALKAN");
+}
+
+const char* inputDataString(int maxSize){
+	char* input = (char*)malloc(maxSize * sizeof(char));
+	char demo;
+	strcpy(input, " ");
+	int i=0;
+
+	// algoritma input data
+	while(1){
+		demo = getch();
+
+		if(demo == 27){
+			strcpy(input, "");
+			break;
+		}
+
+		if(demo == '\r'){
+			break;
+		}
+
+		if(demo == '\b' && i > 0){
+			input[i-1] = '\0';
+			printf("\b \b");
+			i--;
+		}else{
+			if(i < maxSize){
+				input[i] = demo;
+				printf("%c", input[i]);
+				i++;
+			}
+		}
+	}
+
+	if(i != strlen(input)){
+		for(int j=i; j<=strlen(input); j++){
+			input[j] = '\0';
+		}
+	}
+	return input;
+}
+
+void inputDataInt(){
+
+}
+
 //	deklarasi struktur data pasien
 struct data
 {
@@ -75,7 +139,7 @@ struct data
     char nama[50], tanggalLahir[8], penyakit[50];
 };
 
-
+char* input;
 int main(){
 	//todo: Membaca Database
     FILE *db;
@@ -181,19 +245,39 @@ int main(){
 
 	//! algoritma untuk menambahkan data pasien
     case 2:
-		fflush(stdin);
-        printf("Masukkan Nama : "); gets(nama);
-        printf("Masukkan Umur : "); scanf("%d",&umur);
-        fflush(stdin);
-  	    printf("Masukkan Tanggal Lahir : "); gets(tanggalLahir);
-  	    printf("Masukkan status : "); scanf("%d", &status);
-  	    fflush(stdin);
-		printf("Masukkan Nama Penyakit : "); gets(penyakit);
+	// untuk memasukkan nama pasien
+		clearScreenInput();
+				
+		gotoxy(5,2);
+		printf("Periksa Nama Pasien dengan teliti");
 
-        fprintf(db, "%d$%s$%d$%s$%d$%s\n", totalData+1, nama, umur, tanggalLahir, status, penyakit);
-        fflush(db);
-        fseek(db, 0, SEEK_SET);
-        fprintf(db, "%d#\n",++totalData);
+		gotoxy(7,4);
+		// 
+		printf("Nama :"); strcpy(nama, inputDataString(50));
+		printf("nama yang anda tulis = %s", nama);
+	// untuk memasukkan umur pasien
+		// clearScreenInput();
+				
+		// gotoxy(5,2);
+		// printf("Periksa Nama Pasien dengan teliti");
+
+		// gotoxy(7,4);
+		// printf("Nama :"); fflush(stdin); gets(nama);
+		// goto
+
+		// fflush(stdin);
+        // printf("Masukkan Nama : "); gets(nama);
+        // printf("Masukkan Umur : "); scanf("%d",&umur);
+        // fflush(stdin);
+  	    // printf("Masukkan Tanggal Lahir : "); gets(tanggalLahir);
+  	    // printf("Masukkan status : "); scanf("%d", &status);
+  	    // fflush(stdin);
+		// printf("Masukkan Nama Penyakit : "); gets(penyakit);
+
+        // fprintf(db, "%d$%s$%d$%s$%d$%s\n", totalData+1, nama, umur, tanggalLahir, status, penyakit);
+        // fflush(db);
+        // fseek(db, 0, SEEK_SET);
+        // fprintf(db, "%d#\n",++totalData);
 
         break;
 	//! algoritma untuk mengubah data pasien
