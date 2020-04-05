@@ -90,9 +90,10 @@ void clearScreenInput(){
 
 void clearLine(WORD xLine, WORD yLine){
 	gotoxy(xLine, yLine);
-	while(xLine < 80){
+	int i = xLine;
+	while(i < 80){
 		printf(" ");
-		xLine++;
+		i++;
 	}
 	printf("\n");
 	gotoxy(xLine, yLine);
@@ -295,9 +296,9 @@ int main(){
 
         break;
 
-	//! algoritma untuk menambahkan data pasien
+	//todo: menambahkan data pasien
     case 2:
-	//! untuk memasukkan nama pasien
+	//todo: untuk memasukkan nama pasien
 		clearScreenInput();
 		gotoxy(5,2);
 				
@@ -305,7 +306,6 @@ int main(){
 			printf("Periksa Nama Pasien dengan teliti (hanya huruf)");
 			strcpy(nama, "");
 			clearLine(5,5);
-			gotoxy(5,5);
 
 			valid = 1;
 
@@ -332,7 +332,7 @@ int main(){
 			}
 		}
 
-	//! untuk memasukkan umur pasien
+	//todo: memasukkan umur pasien
 		clearLine(5,2);
 		gotoxy(5,2);
 		printf("Tuliskan umur pasien dengan benar");
@@ -346,7 +346,7 @@ int main(){
 			goto keluar;
 		}
 
-	//! untuk memasukkan tanggal Lahir pasien
+	//todo: memasukkan tanggal Lahir pasien
 		clearLine(1,2);
 		valid = 0;
 		gotoxy(5,2);
@@ -437,12 +437,10 @@ int main(){
 			}
 		}
 
-	//! untuk memasukkan status penyakit
+	//todo: memasukkan status penyakit
 		clearLine(1,3);
 		valid = 0;
 		clearLine(5,2);
-		gotoxy(5,2);
-
 
 		while(valid == 0){
 			printf("Masukkan status penyakit pasien (sesuai angka indikator)\n");
@@ -470,23 +468,43 @@ int main(){
 			}
 		}
 
+
+	//todo: memasukkan nama Penyakit pasien
+		clearLine(1,3);
+		clearLine(40,4);
+		clearLine(40,5);
+		clearLine(40,6);
+		clearLine(40,7);
+		clearLine(40,8);
+		clearLine(5,2);
+
+		valid = 0;
+
+
+		while(valid == 0){
+			printf("Masukkan Nama penyakit pasien dengan benar(max 50 karakter)\n");
+			strcpy(penyakit, "");
+
+			valid = 1;
+
+			gotoxy(5,9);
+			printf("Nama Penyakit :"); strcpy(penyakit, inputDataString(50));
+			if(strcmp(nama, "\b") == 0){
+				printf("anda keluar");
+				goto keluar;
+			}
+
+			if(strlen(penyakit)<1){
+				gotoxy(5,2);
+				printf("nama penyakit tidak valid! ");
+				valid = 0;
+			}
+		}
+
+
 		clearScreenInput();
 
-			printf("\nanda menulis nama: %s\nUmur: %d\nTanggal Lahir: %s\nStatus : %d", nama, umur, tanggalLahir, status);
-
-		// fflush(stdin);
-        // printf("Masukkan Nama : "); gets(nama);
-        // printf("Masukkan Umur : "); scanf("%d",&umur);
-        // fflush(stdin);
-  	    // printf("Masukkan Tanggal Lahir : "); gets(tanggalLahir);
-  	    // printf("Masukkan status : "); scanf("%d", &status);
-  	    // fflush(stdin);
-		// printf("Masukkan Nama Penyakit : "); gets(penyakit);
-
-        // fprintf(db, "%d$%s$%d$%s$%d$%s\n", totalData+1, nama, umur, tanggalLahir, status, penyakit);
-        // fflush(db);
-        // fseek(db, 0, SEEK_SET);
-        // fprintf(db, "%d#\n",++totalData);
+		printf("\nanda menulis nama: %s\nUmur: %d\nTanggal Lahir: %s\nStatus : %d\nNama Penyakit : %s", nama, umur, tanggalLahir, status, penyakit);
 
         break;
 	//! algoritma untuk mengubah data pasien
