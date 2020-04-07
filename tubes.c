@@ -137,7 +137,7 @@ const char* inputDataString(int maxSize){
 		}
 	}
 
-	if(i != strlen(input) && strcmp(input, "\b") != 0){
+	if(i < maxSize && strcmp(input, "\b") != 0){
 		for(int j=i; j<=strlen(input); j++){
 			input[j] = '\0';
 		}
@@ -468,7 +468,6 @@ int main(){
 			}
 		}
 
-
 	//todo: memasukkan nama Penyakit pasien
 		clearLine(1,3);
 		clearLine(40,4);
@@ -509,7 +508,81 @@ int main(){
         break;
 	//! algoritma untuk mengubah data pasien
     case 3:
-        printf("Anda masuk ke menu 3");
+    	clearScreenInput();
+		gotoxy(5,2);
+		printf("tekan tombol arrow panah atas dan bawah untuk mengubah kategori");
+		gotoxy(5,3);
+		printf("Masukkan kata kunci maksimal 50 karakter");
+
+		char demo = 0;
+		int counter = 0, len = 0;
+		char search[50];
+		strcpy(search, "");
+
+		while(1){
+			clearLine(5,5);
+			printf("cari berdasarkan ");
+
+			if(counter > 5){
+				counter = 0;
+			}else if(counter < 0){
+				counter = 5;
+			}
+			
+			switch (counter)
+			{
+			case 0:
+				printf("nomor\t\t : ");
+				break;
+			case 1:
+				printf("nama\t\t : ");
+				break;
+			case 2:
+				printf("umur\t\t : ");
+				break;
+			case 3:
+				printf("tanggal lahir\t : ");
+				break;
+			case 4:
+				printf("status\t\t : ");
+				break;
+			case 5:
+				printf("penyakit\t\t : ");
+				break;
+			}
+
+			if(strlen(search) != 0){
+				printf("%s", search);
+			}
+
+			while(1){
+				demo = getch();
+				if(demo == '\r' || demo == 27){
+					break;
+				}
+				else if(demo == -32){
+					demo = getch();
+					if(demo == 72){
+						counter++;
+						break;
+					}else if(demo == 80){
+						counter--;
+						break;
+					}
+				}else if(demo == '\b' && len > 0){
+					search[len-1] = '\0';
+					printf("\b \b");
+					len--;
+				}else if(demo != '\b'){
+					search[len] = demo;
+					printf("%c", search[len]);
+					len++;
+				}
+			}
+			if(demo == '\r' || demo == 27){
+				break;
+			}
+		}
         break;
     default:
         printf("Anda masuk ke menu keluar\n");
