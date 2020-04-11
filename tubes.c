@@ -12,9 +12,16 @@
 #include <conio.h>
 #include <stdlib.h>
 
-// Waktu Dihabiskan : 17
+// Waktu Dihabiskan : 24
 
 #define DATABASEFILE "DATABASE.txt"
+#define TEMPFILE "temp.txt"
+
+//	deklarasi struktur data pasien
+struct data{
+    int nomor,umur,status, kamar;
+    char nama[50], tanggalLahir[8];
+};
 
 /* 
 * 	fungsi gotoxy dari internet 
@@ -186,20 +193,86 @@ const char* inputDataInt(int maxSize){
 	return input;
 }
 
-//	deklarasi struktur data pasien
-struct data{
-    int nomor,umur,status;
-    char nama[50], tanggalLahir[8], penyakit[50];
-};
+int compareValueString(char string[], char search[]){
+	if(strcmp(string, search) == 0){
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+int compareValueInt(int value, char search[]){
+	if(value == atoi(search)){
+		return 1;
+	}
+	else{
+		return 0;
+	}
+}
+
+void swapStruct(struct data *a, struct data *b){
+	struct data temp = *a;
+	*a = *b;
+	*b = temp;
+}
+
+int compareDOB(char tanggal1[], char tanggal2[]){
+	int i;
+	char hari[2][2], bulan[2][2], tahun[2][4];
+	int hari_int[2], bulan_int[2], tahun_int[2];
+
+	for(i = 0; i<strlen(tanggal1); i++){
+		if(i > 3){
+			tahun[1][i-4] = tanggal1[i];
+		}else if(i>1){
+			bulan[1][i-2] = tanggal1[i];
+		}else{
+			hari[1][i] = tanggal1[i];
+		}
+	}
+
+	for(i = 0; i<strlen(tanggal2); i++){
+		if(i > 3){
+			tahun[2][i-4] = tanggal2[i];
+		}else if(i>1){
+			bulan[2][i-2] = tanggal2[i];
+		}else{
+			hari[2][i] = tanggal2[i];
+		}
+	}
+
+	for(i = 0; i < 2; i++){
+		hari_int[i] = atoi(hari[i]);
+		bulan_int[i] = atoi(bulan[i]);
+		tahun_int[i] = atoi(tahun[i]);
+	}
+
+	// mulai dari tahun
+	if(tahun_int[0] > tahun_int[1]){
+		return 1;
+	}else if(tahun_int[0] == tahun_int[1]){
+		if(bulan_int[0] > bulan_int[1]){
+			return 1;
+		}else if(bulan_int[0] == bulan_int[1]){
+			if(hari_int[0] > hari_int[1]){
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
 
 char* input;
 int main(){
 	//todo: Membaca Database
     FILE *db;
-    
+    int jumlahTab[6] = {1,1,1,1,1,1};
+
     char data[20];
-    char nama[50], tanggalLahir[8], penyakit[50]; 
-    int nomor, umur, status, valid=0;
+    char nama[50], tanggalLahir[8], test;
+    int nomor, umur, status, kamar, valid=0, i, j, count = 0;
 
     if((db = fopen(DATABASEFILE,"r+")) == NULL){
         printf("DATABASE Tidak bisa diakses!\nMohon periksa perizinan file");
@@ -208,12 +281,14 @@ int main(){
 
 	//todo:	checking jika database kosong atau tidak
 	char line[256];
-	fgets(line, sizeof(line), db);
+	while(fgets(line, sizeof(line), db) != NULL){
+		count++;
+	}
 	
-	if(strlen(line) <= 1){
+	if(count == 0){
 		fprintf(db, "0#\n");
 	}
-    
+
 	//todo:	mengambil data pasien
     int totalData;
 	fflush(db);
@@ -223,16 +298,19 @@ int main(){
 		fscanf(db, "%d#\n", &totalData);	
 	}
 	
-	int i = 0;
+	printf("total data : %d di posisi %d\n", totalData, ftell(db));
 	
-	struct data pasien[totalData];
+	i = 0;
+	
+	struct data *pasien;
+	pasien = (struct data*)malloc(totalData * sizeof(struct data));
 
 	//todo:	membaca data pasien        
     while(!feof(db) && totalData > 0){
-        fscanf(db, "%d$%[^$]$%d$%[^$]$%d%$[^$]\n",&pasien[i].nomor,&pasien[i].nama,&pasien[i].umur, &pasien[i].tanggalLahir, &pasien[i].status, &pasien[i].penyakit);
+        fscanf(db, "%d$%[^$]$%d$%[^$]$%d$%d$\n",&pasien[i].nomor,&pasien[i].nama, &pasien[i].umur, &pasien[i].tanggalLahir, &pasien[i].status, &pasien[i].kamar);
         i++;
-    }		
-   
+    }	
+
 	//! menu utama
   	int menu;
    
@@ -248,12 +326,11 @@ int main(){
            goto keluar;
         }
         
-        int jumlahTab[6] = {1,1,1,1,1,1};
+        // int jumlahTab[6] = {1,1,1,1,1,1};
 
 	//! khusus
 		kalimatTerpanjang("Nama Lengkap", &jumlahTab[1]);
 		kalimatTerpanjang("Tanggal Lahir", &jumlahTab[3]);
-		kalimatTerpanjang("Penyakit", &jumlahTab[5]);
 
 	// todo: mencari panjang tiap section data
 		for(int j=0; j<totalData; j++){
@@ -262,11 +339,11 @@ int main(){
 			digitTerpanjang(pasien[j].nomor, &jumlahTab[0]);
 			digitTerpanjang(pasien[j].umur, &jumlahTab[2]);
 			digitTerpanjang(pasien[j].status, &jumlahTab[4]);
+			digitTerpanjang(pasien[i].kamar, &jumlahTab[5]);
 
 		// todo: mencari digit terpanjang untuk string
 			kalimatTerpanjang(pasien[j].nama, &jumlahTab[1]);
 			kalimatTerpanjang(pasien[j].tanggalLahir, &jumlahTab[3]);
-			kalimatTerpanjang(pasien[j].penyakit, &jumlahTab[5]);
 		}
 
 	// todo: menulis bagian awal tampilan
@@ -276,7 +353,7 @@ int main(){
 		judulDaftar("Umur", jumlahTab[2]);
 		judulDaftar("Tanggal Lahir", jumlahTab[3]-1);
 		judulDaftar("Status", jumlahTab[4]);
-		judulDaftar("Penyakit", jumlahTab[5]-1);
+		judulDaftar("Kamar", jumlahTab[5]);
 		printf("\n");
 		
 	//! todo : membuat baris pemisah judul dan data
@@ -289,7 +366,7 @@ int main(){
 			daftarDataInt(pasien[j].umur, jumlahTab[2]);
 			daftarDataString(pasien[j].tanggalLahir, jumlahTab[3]);
 			daftarDataInt(pasien[j].status, jumlahTab[4]);
-			daftarDataString(pasien[j].penyakit, jumlahTab[5]);
+			daftarDataInt(pasien[j].kamar, jumlahTab[5]);
 
 			printf("\n");
 		}
@@ -318,7 +395,7 @@ int main(){
 		//* proses validasi nama
 			if(strlen(nama)>0){
 				for(int i=0; i<strlen(nama); i++){
-					if(nama[i] <65 || (nama[i] > 90 && nama[i] < 97) || nama[i] > 122){
+					if((nama[i] <65 || (nama[i] > 90 && nama[i] < 97) || nama[i] > 122) && nama[i] != 32){
 						gotoxy(5,2);
 						printf("nama tidak valid! ");
 						valid = 0;
@@ -468,7 +545,7 @@ int main(){
 			}
 		}
 
-	//todo: memasukkan nama Penyakit pasien
+	//todo: memasukkan nomor Kamar pasien
 		clearLine(1,3);
 		clearLine(40,4);
 		clearLine(40,5);
@@ -481,29 +558,24 @@ int main(){
 
 
 		while(valid == 0){
-			printf("Masukkan Nama penyakit pasien dengan benar(max 50 karakter)\n");
-			strcpy(penyakit, "");
-
+			printf("Masukkan Nomor kamar pasien");
+			
 			valid = 1;
 
 			gotoxy(5,9);
-			printf("Nama Penyakit :"); strcpy(penyakit, inputDataString(50));
-			if(strcmp(nama, "\b") == 0){
-				printf("anda keluar");
+			printf("Nomor Kamar :"); kamar = atoi(inputDataInt(3));
+			if(kamar == 99999){
 				goto keluar;
-			}
-
-			if(strlen(penyakit)<1){
-				gotoxy(5,2);
-				printf("nama penyakit tidak valid! ");
-				valid = 0;
 			}
 		}
 
-
 		clearScreenInput();
 
-		printf("\nanda menulis nama: %s\nUmur: %d\nTanggal Lahir: %s\nStatus : %d\nNama Penyakit : %s", nama, umur, tanggalLahir, status, penyakit);
+		fprintf(db, "%d$%s$%d$%s$%d$%d$\n", totalData+1, nama, umur, tanggalLahir, status, kamar);
+
+		fflush(db);
+        fseek(db, 0, SEEK_SET);
+        fprintf(db, "%d#\n",++totalData);
 
         break;
 	//! algoritma untuk mengubah data pasien
@@ -517,7 +589,9 @@ int main(){
 		char demo = 0;
 		int counter = 0, len = 0;
 		char search[50];
+		int i, bar;
 		strcpy(search, "");
+		struct data *result, *temp[1];
 
 		while(1){
 			clearLine(5,5);
@@ -547,7 +621,7 @@ int main(){
 				printf("status\t\t : ");
 				break;
 			case 5:
-				printf("penyakit\t\t : ");
+				printf("kamar\t\t : ");
 				break;
 			}
 
@@ -583,7 +657,344 @@ int main(){
 				break;
 			}
 		}
-        break;
+
+		int total = 0;
+		result = (struct data*)malloc(total * sizeof(struct data));
+
+	//todo : searching menggunakan binary search
+		//* mencari data yang cocok dengan pencarian
+		for(i = 0; i < totalData; i++){
+			int same = 0;
+
+			switch (counter)
+			{
+			case 0:
+				same = compareValueInt(pasien[i].nomor, search);
+				break;
+			case 1:
+				same = compareValueString(pasien[i].nama, search);
+				break;
+			case 2:
+				same = compareValueInt(pasien[i].umur, search);
+				break;
+			case 3:
+				same = compareValueString(pasien[i].tanggalLahir, search);
+				break;
+			case 4:
+				same = compareValueInt(pasien[i].status, search);
+				break;
+			case 5:
+				same = compareValueInt(pasien[i].kamar, search);
+				break;
+			}
+
+			if(same == 1){
+				total++;
+				result = realloc(result, total * sizeof(struct data));
+				result[total-1] = pasien[i];
+			}
+		}
+
+		if(total == 0){
+			printf("\n\npencarian tidak ditemukan");
+	        break;
+		}else{
+			// mengubah menjadi lowercase
+			for(i = 0; i<total; i++){
+				for(j = 0; j<strlen(result[i].nama); j++){
+					result[i].nama[j] = tolower(result[i].nama[j]);
+				}
+			}
+		}
+
+		counter = 0;
+		
+		while(1){
+
+			clearScreenInput();
+			printxy("Tekan enter untuk mengedit", 5,2);
+			printxy("tekan atas atau bawah untuk mencari yang diedit",5,3);
+			printxy("tekan kanan atau kiri untuk mengubah urutan",5,4);
+			printxy("diurutkan berdasarkan : ", 5, 5); 
+
+			if(counter > 5){
+				counter = 0;	
+			}
+
+			if(counter < 0){
+				counter = 5;
+			}
+
+			for(i = 0; i< total-1; i++){
+				for(j = 0; j <total-i-1; j++){
+					switch(counter){
+				// bubble sort
+					case 0:
+					// berdasarkan nomor
+					printf("Nomor");
+					if(result[i+1].nomor < result[i].nomor){
+						swapStruct(&result[i+1], &result[i]);
+					}
+					break;
+					case 1:
+					printf("Nama");
+					// berdasarkan nama
+					if(strcmp(result[i+1].nama, result[i].nama) == -1){
+						swapStruct(&result[i+1], &result[i]);
+					}
+					break;
+					case 2:
+					printf("Umur");
+					// berdasarkan umur
+					if(result[i+1].umur< result[i].umur){
+						swapStruct(&result[i+1], &result[i]);
+					}
+					break;
+					case 3:
+					printf("Tanggal Lahir");
+					// berdasarkan tanggalLahir
+					if(compareDOB(result[i].tanggalLahir, result[i+1].tanggalLahir)){
+						swapStruct(&result[i+1], &result[i]);
+					}
+					break;
+					case 4:
+					printf("Status");
+					// berdasarkan status
+					if(result[i+1].status < result[i].status){
+						swapStruct(&result[i+1], &result[i]);
+					}
+					break;
+					case 5:
+					printf("Kamar");
+					// berdasarkan kamar
+					if(result[i+1].kamar < result[i].kamar){
+						swapStruct(&result[i+1], &result[i]);
+					}
+					break;	
+					}	
+				}
+			}
+			
+			//! khusus
+			kalimatTerpanjang("Nama Lengkap", &jumlahTab[1]);
+			kalimatTerpanjang("Tanggal Lahir", &jumlahTab[3]);
+	
+			// todo: mencari panjang tiap section data
+			for(int j=0; j<total; j++){
+
+			// todo: mencari digit terpanjang untuk int
+				digitTerpanjang(result[j].nomor, &jumlahTab[0]);
+				digitTerpanjang(result[j].umur, &jumlahTab[2]);
+				digitTerpanjang(result[j].status, &jumlahTab[4]);
+				digitTerpanjang(result[i].kamar, &jumlahTab[5]);
+
+			// todo: mencari digit terpanjang untuk string
+				kalimatTerpanjang(result[j].nama, &jumlahTab[1]);
+				kalimatTerpanjang(result[j].tanggalLahir, &jumlahTab[3]);
+			}
+
+			// todo: menulis bagian awal tampilan
+			gotoxy(0,8);
+			printf("|");
+			judulDaftar("Nomor", jumlahTab[0]);
+			judulDaftar("Nama Lengkap", jumlahTab[1] - 1);
+			judulDaftar("Umur", jumlahTab[2]);
+			judulDaftar("Tanggal Lahir", jumlahTab[3]-1);
+			judulDaftar("Status", jumlahTab[4]);
+			judulDaftar("Kamar", jumlahTab[5]);
+			printf("\n");
+		
+			// todo: menulis bagian data tampilan
+			for(int j=0; j<total; j++){
+				printf("|");
+				daftarDataInt(result[j].nomor, jumlahTab[0]);
+				daftarDataString(result[j].nama, jumlahTab[1]);
+				daftarDataInt(result[j].umur, jumlahTab[2]);
+				daftarDataString(result[j].tanggalLahir, jumlahTab[3]);
+				daftarDataInt(result[j].status, jumlahTab[4]);
+				daftarDataInt(result[j].kamar, jumlahTab[5]);
+				printf("\n");
+			}
+
+			int totalTab = 0;
+		
+			for(int j = 0; j < 6; j++){
+				totalTab += jumlahTab[j];
+			}
+
+			bar = 9;
+
+			while (1){
+				gotoxy(totalTab*8+1, bar);
+				printf("%d", counter);
+
+				demo = getch();
+				if(demo == '\r' || demo == 27){
+					break;
+				}
+				else if(demo == -32){
+					printf("\b \b");
+					demo = getch();
+					if(demo == 80 && bar < 8 + total){
+						bar++;
+					}else if(demo == 72 && bar > 9){
+						bar--;
+					}else if(demo == 77){
+						// kekanan
+						counter++;
+						break;
+					}else if(demo == 75){
+						// kekiri
+						counter--;
+						break;
+					}
+				}
+			}
+			if(demo == '\r' || demo == 27){
+					break;
+			}
+		}
+
+		if(demo == '\r'){
+			demo = '\0';
+
+			char **input;
+			input = malloc(5 * sizeof(char*));
+			
+			int max[5] = {50, 3, 8, 1, 3};
+
+			for(j = 0; j < 5; j++){
+				input[j] = malloc(max[j] * sizeof(char));
+			}
+
+			 strcpy(input[0], result[i].nama);
+			 itoa(result[i].umur, input[1], 10);
+			 strcpy(input[2], result[i].tanggalLahir);
+			 itoa(result[i].status, input[3], 10);
+			 itoa(result[i].kamar, input[4], 10);
+
+			 for(j=0; j<5; j++){
+				 printf("%s\n", input[j]);
+			 }
+
+
+			clearScreenInput();
+			i = bar - 9;
+			printxy("Tekan enter untuk menyimpan data", 5,2);
+			printxy("tekan atas atau bawah untuk mencari yang diedit",5,3);
+
+			printxy("Nama ", 5, 5); printf("\t\t : %s", input[0]);
+			printxy("Umur ", 5, 6); printf("\t\t : %s", input[1]);
+			printxy("tanggal Lahir ", 5, 7); printf("\t : %s", input[2]);
+			printxy("Status ", 5,8); printf("\t\t : %s", input[3]);
+			printxy("Kamar ", 5, 9); printf("\t\t : %s", input[4]);
+
+			bar = 5;
+			while(1){
+				if(bar > 9){
+					bar = 5;
+				}else if(bar <5){
+					bar = 9;
+				}
+
+				gotoxy(27+strlen(input[bar-5]), bar);
+
+				demo = getch();
+				if(demo == '\r'){
+					// simpan data (buat fungsi)
+					break;
+				}else if(demo == 27){
+					// batal
+					break;
+				}else if(demo == -32){
+					demo = getch();
+					if(demo == 80 && bar < 10){
+						// kebawah
+						bar++;
+					}else if(demo == 72 && bar > 4){
+						// keatas
+						bar--;
+					}
+				}
+				else if(demo == '\b' && strlen(input[bar-5]) > 0){
+					input[bar-5][strlen(input[bar-5])-1] = '\0';
+					printf("\b \b");
+				}else if(strlen(input[bar-5]) < max[bar-5]){
+					switch(bar-5){
+						case 0:
+							if(!((demo <65 || (demo > 90 && demo < 97) || demo > 122) && demo != 32)){
+								printf("%c", demo);
+								input[bar-5][strlen(input[bar-5])] = demo;
+							}
+							break;
+						case 1:
+						case 2:
+						case 3:
+						case 4:
+							if(demo >= 48 && demo <= 57){
+								input[bar-5][strlen(input[bar-5])] = demo;
+								printf("%c", demo);
+							}
+							break;
+					}
+				}
+			}
+
+			if(demo == '\r'){
+
+				
+				
+				clearScreenInput();
+				printf("\nanda mengubah dari : %s -> %s\n", result[i].nama, input[0]);
+				printf("anda mengubah dari : %d -> %s\n", result[i].umur,input[1]);
+				printf("anda mengubah dari : %s -> %s\n", result[i].tanggalLahir, input[2]);
+				printf("anda mengubah dari : %d -> %s\n", result[i].status, input[3]);
+				printf("anda mengubah dari : %d -> %s\n", result[i].kamar, input[4]);
+
+				printf("TEKAN ENTER JIKA ANDA SETUJU!");
+				demo = getch();
+
+
+				if(demo == '\r'){
+					
+					printf("oi");
+
+					strcpy(result[i].nama, input[0]);
+					result[i].umur = atoi(input[1]);
+					strcpy(result[i].tanggalLahir, input[2]);
+					result[i].status = atoi(input[3]);
+					result[i].kamar = atoi(input[4]);
+					
+					// membuat file temporary
+					// bisa dibuat fungsi pengopian data baru
+					FILE *temp;
+					if((temp = fopen(TEMPFILE,"w+")) == NULL){
+   					    printf("DATABASE Tidak bisa diakses!\nMohon periksa perizinan file");
+   					    exit(0);
+   					}
+					
+					fprintf(temp, "%d#\n", totalData);
+
+					for(j = 0; j < totalData; j++){
+						if(j == result[i].nomor-1){
+							fprintf(temp, "%d$%s$%d$%s$%d$%d$\n", result[i].nomor, result[i].nama, result[i].umur, result[i].tanggalLahir, result[i].status, result[i].kamar);
+						}
+						else{
+							fprintf(temp, "%d$%s$%d$%s$%d$%d$\n", pasien[j].nomor, pasien[j].nama, pasien[j].umur, pasien[j].tanggalLahir, pasien[j].status, pasien[j].kamar);
+						}
+					}
+
+					fseek(db, 0, SEEK_SET);
+					fseek(temp, 0 , SEEK_SET);
+					while((test = fgetc(temp)) != EOF){
+						fputc(test, db);
+					}
+				}
+			}
+		}
+		
+		break;
+			
     default:
         printf("Anda masuk ke menu keluar\n");
         printf("Keluar Lu ASW!\n");
