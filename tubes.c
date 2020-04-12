@@ -16,11 +16,16 @@
 
 #define DATABASEFILE "DATABASE.txt"
 #define TEMPFILE "temp.txt"
+#define USERFILE "user.txt"
 
 //	deklarasi struktur data pasien
 struct data{
     int nomor,umur,status, kamar;
     char nama[50], tanggalLahir[8];
+};
+
+struct auth{
+	char username[50], password[50];
 };
 
 /* 
@@ -266,21 +271,136 @@ int compareDOB(char tanggal1[], char tanggal2[]){
 
 char* input;
 int main(){
-	//todo: Membaca Database
-    FILE *db;
-    int jumlahTab[6] = {1,1,1,1,1,1};
+	char data[20];
+    char nama[50], tanggalLahir[8], test, username[50], password[50], password_ver[50],line[256];
+    int nomor, umur, status, kamar, valid=0, i, j, count = 0, totalData, menu;
 
-    char data[20];
-    char nama[50], tanggalLahir[8], test;
-    int nomor, umur, status, kamar, valid=0, i, j, count = 0;
+	// login dan registrasi
+	FILE *userdb, *db, *temp;
 
-    if((db = fopen(DATABASEFILE,"r+")) == NULL){
+	userdb = fopen(USERFILE, "a+");
+	db = fopen(DATABASEFILE, "a+");
+	temp = fopen(TEMPFILE, "a+");
+
+	fclose(userdb);
+	fclose(db);
+	fclose(temp);
+
+	if((db = fopen(DATABASEFILE,"r+")) == NULL){
         printf("DATABASE Tidak bisa diakses!\nMohon periksa perizinan file");
         exit(0);
     }
 
+	if((userdb = fopen(USERFILE,"r+")) == NULL){
+        printf("DATABASE Tidak bisa diakses!\nMohon periksa perizinan file");
+        exit(0);
+    }
+
+	// mengambil data pengguna (hehe)
+	count = 0;
 	//todo:	checking jika database kosong atau tidak
-	char line[256];
+	while(fgets(line, sizeof(line), userdb) != NULL){
+		count++;
+	}
+	
+	if(count == 0){
+		fprintf(userdb, "0#\n");
+	}
+
+	//todo:	mengambil data pasien
+	fseek(userdb, 0, SEEK_SET);
+    
+	if(!feof(userdb)){
+		fscanf(userdb, "%d#\n", &totalData);	
+	}
+
+	struct auth *user;
+	user = (struct auth*)malloc(totalData * sizeof(struct auth));
+
+	//todo:	membaca data pasien  
+	i = 0;      
+    while(!feof(userdb) && totalData > 0){
+		fscanf(userdb, "%[^$]$%[^$]$\n", &user[i].username, &user[i].password);
+        i++;
+    }
+
+	// ! menu login
+	printf("SELAMAT DATANG!\n1.LOGIN\n2.REGISTRASI\n");
+  	printf("Masukkan Menu (Tombol lain untuk keluar) : "); scanf("%d",&menu);
+	system("cls");
+
+	switch(menu){
+		case 1:
+		if(totalData == 0){
+			printf("data kososng! silahkan buat akun baru");
+			goto keluar;
+		}
+
+		while(1){
+			printf("Masukkan Username : "); strcpy(username, inputDataString(50));
+			printf("\nMasukkan Password : "); strcpy(password, inputDataString(50));
+
+			for(i = 0; i < totalData; i++){
+				if((strcmp(user[i].username, username) == 0) && (strcmp(user[i].password, password) == 0)){
+					printf("bener kok");
+					goto utama;
+				}
+			}
+			system("cls");
+			printf("Username atau password anda salah!\n");
+		}
+		
+		break;
+
+		case 2:
+
+		while(1){
+			printf("masukkan Username : "); strcpy(username, inputDataString(50));
+			printf("\nmasukkan password : "); strcpy(password, inputDataString(50));
+			printf("\nUlangi password : "); strcpy(password_ver, inputDataString(50));
+
+			if(strcmp(password, password_ver) == 0){
+				if((temp = fopen(TEMPFILE,"w+")) == NULL){
+  				    printf("DATABASE Tidak bisa diakses!\nMohon periksa perizinan file");
+  				    exit(0);
+  				}
+				
+				fprintf(temp, "%d#\n", totalData+1);
+				printf("%d# dengan posisi : %d\n", totalData+1,ftell(temp));
+				for(i = 0; i<totalData; i++){
+					fprintf(temp, "%s$%s$\n", user[i].username, user[i].password);
+					printf("%s$%s$\n", user[i].username, user[i].password);
+				}
+
+				fprintf(userdb, "%s$%s$\n", username, password);
+				printf("%s$%s$\n", username, password);
+
+				fseek(userdb, 0, SEEK_SET);
+				fseek(temp, 0, SEEK_SET);
+
+				while((test = fgetc(temp)) != EOF){
+					fputc(test, userdb);
+				}
+				fclose(temp);
+
+				goto utama;
+				break;
+			}
+			system("cls");
+			printf("Password anda tidak sama!\n");
+		}
+		break;
+	}
+
+	//todo: Membaca Database
+
+	utama:
+	system("cls");
+	printf("memeriksa database pasien..\n");
+    int jumlahTab[6] = {1,1,1,1,1,1};
+
+	count = 0;
+	//todo:	checking jika database kosong atau tidak
 	while(fgets(line, sizeof(line), db) != NULL){
 		count++;
 	}
@@ -288,9 +408,8 @@ int main(){
 	if(count == 0){
 		fprintf(db, "0#\n");
 	}
-
+	
 	//todo:	mengambil data pasien
-    int totalData;
 	fflush(db);
 	fseek(db, 0, SEEK_SET);
     
@@ -298,7 +417,7 @@ int main(){
 		fscanf(db, "%d#\n", &totalData);	
 	}
 	
-	printf("total data : %d di posisi %d\n", totalData, ftell(db));
+	printf("jumlah : %d\n", totalData);
 	
 	i = 0;
 	
@@ -306,14 +425,13 @@ int main(){
 	pasien = (struct data*)malloc(totalData * sizeof(struct data));
 
 	//todo:	membaca data pasien        
-    while(!feof(db) && totalData > 0){
+    while((!feof(db)) && totalData > 0){
         fscanf(db, "%d$%[^$]$%d$%[^$]$%d$%d$\n",&pasien[i].nomor,&pasien[i].nama, &pasien[i].umur, &pasien[i].tanggalLahir, &pasien[i].status, &pasien[i].kamar);
+//        printf("%d\t%s\t%d\t%s\t%d\t%d\n", pasien[i].nomor, pasien[i].nama, pasien[i].umur, pasien[i].tanggalLahir, pasien[i].status, pasien[i].kamar);
         i++;
     }	
 
 	//! menu utama
-  	int menu;
-   
    	printf("Selamat Datang\n1. Tampilkan Data Pasien\n2. Tambahkan Data Pasien\n3. Ubah Data Pasien\n");
    	printf("Masukkan Menu (Tombol lain untuk keluar) : "); scanf("%d",&menu);
 
@@ -571,15 +689,34 @@ int main(){
 
 		clearScreenInput();
 
-		fprintf(db, "%d$%s$%d$%s$%d$%d$\n", totalData+1, nama, umur, tanggalLahir, status, kamar);
+		if((temp = fopen(TEMPFILE,"w+")) == NULL){
+  		    printf("DATABASE Tidak bisa diakses!\nMohon periksa perizinan file");
+  		    exit(0);
+  		}
+		
+		fprintf(temp, "%d#\n", totalData+1);
 
-		fflush(db);
-        fseek(db, 0, SEEK_SET);
-        fprintf(db, "%d#\n",++totalData);
+		for(i = 0; i<totalData; i++){
+			fprintf(temp, "%d$%s$%d$%s$%d$%d$\n", pasien[i].nomor, pasien[i].nama, pasien[i].umur, pasien[i].tanggalLahir, pasien[i].status, pasien[i].kamar);
+		}
 
+		fprintf(temp, "%d$%s$%d$%s$%d$%d$\n", totalData+1, nama, umur, tanggalLahir, status, kamar);
+
+		fseek(db, 0, SEEK_SET);
+		fseek(temp, 0 , SEEK_SET);
+		while((test = fgetc(temp)) != EOF){
+			fputc(test, db);
+		}
+		fclose(temp);
+
+		printf("Proses berhasil");
         break;
 	//! algoritma untuk mengubah data pasien
     case 3:
+		if(totalData == 0){
+			printf("database kosong!");
+			goto keluar;
+		}
     	clearScreenInput();
 		gotoxy(5,2);
 		printf("tekan tombol arrow panah atas dan bawah untuk mengubah kategori");
@@ -591,7 +728,7 @@ int main(){
 		char search[50];
 		int i, bar;
 		strcpy(search, "");
-		struct data *result, *temp[1];
+		struct data *result;
 
 		while(1){
 			clearLine(5,5);
@@ -942,8 +1079,6 @@ int main(){
 
 			if(demo == '\r'){
 
-				
-				
 				clearScreenInput();
 				printf("\nanda mengubah dari : %s -> %s\n", result[i].nama, input[0]);
 				printf("anda mengubah dari : %d -> %s\n", result[i].umur,input[1]);
@@ -953,8 +1088,6 @@ int main(){
 
 				printf("TEKAN ENTER JIKA ANDA SETUJU!");
 				demo = getch();
-
-
 				if(demo == '\r'){
 					
 					printf("oi");
@@ -967,12 +1100,13 @@ int main(){
 					
 					// membuat file temporary
 					// bisa dibuat fungsi pengopian data baru
-					FILE *temp;
+
 					if((temp = fopen(TEMPFILE,"w+")) == NULL){
-   					    printf("DATABASE Tidak bisa diakses!\nMohon periksa perizinan file");
-   					    exit(0);
-   					}
+  					    printf("DATABASE Tidak bisa diakses!\nMohon periksa perizinan file");
+  					    exit(0);
+  					}
 					
+					fseek(temp, 0, SEEK_SET);
 					fprintf(temp, "%d#\n", totalData);
 
 					for(j = 0; j < totalData; j++){
@@ -989,6 +1123,7 @@ int main(){
 					while((test = fgetc(temp)) != EOF){
 						fputc(test, db);
 					}
+					fclose(temp);
 				}
 			}
 		}
@@ -1005,6 +1140,6 @@ int main(){
     keluar:
     printf("\nanda keluar");
     fclose(db);
-	free(input);
+	fclose(userdb);
     return 0;        
 }
