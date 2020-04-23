@@ -1,18 +1,8 @@
-/*
-! catatan penting : 
-! 1. compiler harus berjalan di mode c99 atau c11
-! 	=> -std=c99
-!	=> -std=c11
-! 2. kode tidak bisa dijalankan di code blocks (bisa diperbaiki nanti)
-*/
-
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>
 #include <conio.h>
 #include <stdlib.h>
-
-// Waktu Dihabiskan : 24
 
 #define DATABASEFILE "DATABASE.txt"
 #define TEMPFILE "temp.txt"
@@ -325,6 +315,7 @@ int main(){
     }
 
 	// ! menu login
+	printf("Total Orang : %d\n", totalData);
 	printf("SELAMAT DATANG!\n1.LOGIN\n2.REGISTRASI\n");
   	printf("Masukkan Menu (Tombol lain untuk keluar) : "); scanf("%d",&menu);
 	system("cls");
@@ -355,6 +346,7 @@ int main(){
 		case 2:
 
 		while(1){
+
 			printf("masukkan Username : "); strcpy(username, inputDataString(50));
 			printf("\nmasukkan password : "); strcpy(password, inputDataString(50));
 			printf("\nUlangi password : "); strcpy(password_ver, inputDataString(50));
@@ -366,21 +358,22 @@ int main(){
   				}
 				
 				fprintf(temp, "%d#\n", totalData+1);
-				printf("%d# dengan posisi : %d\n", totalData+1,ftell(temp));
+				// printf("%d# dengan posisi : %d\n", totalData+1,ftell(temp));
 				for(i = 0; i<totalData; i++){
 					fprintf(temp, "%s$%s$\n", user[i].username, user[i].password);
-					printf("%s$%s$\n", user[i].username, user[i].password);
+					// printf("%s$%s$\n", user[i].username, user[i].password);
 				}
 
-				fprintf(userdb, "%s$%s$\n", username, password);
-				printf("%s$%s$\n", username, password);
+				fprintf(temp, "%s$%s$\n", username, password);
 
 				fseek(userdb, 0, SEEK_SET);
 				fseek(temp, 0, SEEK_SET);
-
+				
 				while((test = fgetc(temp)) != EOF){
+					fseek(userdb, 0, SEEK_CUR);
 					fputc(test, userdb);
 				}
+
 				fclose(temp);
 
 				goto utama;
@@ -395,6 +388,7 @@ int main(){
 	//todo: Membaca Database
 
 	utama:
+	fclose(userdb);
 	system("cls");
 	printf("memeriksa database pasien..\n");
     int jumlahTab[6] = {1,1,1,1,1,1};
@@ -410,7 +404,6 @@ int main(){
 	}
 	
 	//todo:	mengambil data pasien
-	fflush(db);
 	fseek(db, 0, SEEK_SET);
     
 	if(!feof(db)){
@@ -488,6 +481,7 @@ int main(){
 
 			printf("\n");
 		}
+		printf("halo");
 
         break;
 
@@ -798,7 +792,7 @@ int main(){
 		int total = 0;
 		result = (struct data*)malloc(total * sizeof(struct data));
 
-	//todo : searching menggunakan binary search
+	//todo : searching menggunakan linear search
 		//* mencari data yang cocok dengan pencarian
 		for(i = 0; i < totalData; i++){
 			int same = 0;
@@ -1140,6 +1134,6 @@ int main(){
     keluar:
     printf("\nanda keluar");
     fclose(db);
-	fclose(userdb);
-    return 0;        
+	printf("udah kok");
+    return 0;
 }
